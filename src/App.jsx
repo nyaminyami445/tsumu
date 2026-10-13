@@ -19,7 +19,28 @@ function App() {
   for (const record of records ?? []) {
     totals[record.goalId] = (totals[record.goalId] ?? 0) + record.amount;
   }
+  async function handleDeleteGoal(goal) {
+    const count = await db.records.where('goalId').equals(goal.id).count();
+    const message =
+      count > 0
+        ? `「${goal.name}」を削除しますか？\nこの目標の節約記録${count}件も一緒に削除されます。`
+        : `「${goal.name}」を削除しますか？`;
 
+    if (!window.confirm(message)) return;
+
+    try {
+      await db.transaction('rw', db.goals, db.records, db.images, async () => {
+        await db.records.where('goalId').equals(goal.id).delete();
+        if (goal.imageId) {
+          await db.images.delete(goal.imageId);
+        }
+        await db.goals.delete(goal.id);
+      });
+    } catch (err) {
+      console.error(err);
+      window.alert('削除に失敗しました');
+    }
+  }
   async function handleSubmit(e) {
     e.preventDefault();
     const amount = Number(targetAmount);
@@ -146,6 +167,13 @@ function App() {
                   節約累計 {saved.toLocaleString()}円 ／ 目標{' '}
                   {goal.targetAmount.toLocaleString()}円
                 </div>
+                                <button
+                  type="button"
+                  onClick={() => handleDeleteGoal(goal)}
+                  style={{ marginTop: 8 }}
+                >
+                  削除
+                </button>
               </article>
             );
           })}

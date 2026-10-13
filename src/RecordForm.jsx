@@ -53,7 +53,7 @@ export default function RecordForm({ goals }) {
       setError('節約額は1円〜1,000万円の整数で入力してください');
       return;
     }
-    if (!goalId) {
+        if (!goals.some((goal) => goal.id === goalId)) {
       setError('反映先の目標を選んでください');
       return;
     }
