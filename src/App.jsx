@@ -133,7 +133,7 @@ function App() {
                 key={goal.id}
                 style={{ border: '1px solid #dddddd', borderRadius: 12, padding: 12 }}
               >
-                <GoalImage imageId={goal.imageId} rate={rate} />
+                <GoalImage imageId={goal.imageId} rate={rate} achieved={achieved} />
                 <h3 style={{ margin: '8px 0 4px' }}>
                   {goal.name}
                   {achieved && '　達成！'}
