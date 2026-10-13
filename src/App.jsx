@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db';
+import RecordForm from './RecordForm';
 
 function App() {
   const [name, setName] = useState('');
@@ -8,6 +9,12 @@ function App() {
   const [error, setError] = useState('');
 
   const goals = useLiveQuery(() => db.goals.orderBy('createdAt').toArray(), []);
+  const records = useLiveQuery(() => db.records.toArray(), []);
+
+  const totals = {};
+  for (const record of records ?? []) {
+    totals[record.goalId] = (totals[record.goalId] ?? 0) + record.amount;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -45,30 +52,55 @@ function App() {
     <main>
       <h1>Tsumu</h1>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="目標名"
-        />
-        <input
-          type="number"
-          value={targetAmount}
-          onChange={(e) => setTargetAmount(e.target.value)}
-          placeholder="目標金額"
-        />
-        <button type="submit">追加</button>
-      </form>
+      <section>
+        <h2>目標を追加</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="目標名"
+          />
+          <input
+            type="number"
+            value={targetAmount}
+            onChange={(e) => setTargetAmount(e.target.value)}
+            placeholder="目標金額"
+          />
+          <button type="submit">追加</button>
+        </form>
+        {error && <p>{error}</p>}
+      </section>
 
-      {error && <p>{error}</p>}
+      <section>
+        <h2>節約を記録</h2>
+        <RecordForm goals={goals ?? []} />
+      </section>
 
-      <ul>
-        {goals?.map((goal) => (
-          <li key={goal.id}>
-            {goal.name}：{goal.targetAmount.toLocaleString()}円
-          </li>
-        ))}
-      </ul>
+      <section>
+        <h2>目標一覧</h2>
+        <ul>
+          {goals?.map((goal) => {
+            const saved = totals[goal.id] ?? 0;
+            const rate = Math.min(100, Math.floor((saved / goal.targetAmount) * 100));
+            const remaining = Math.max(0, goal.targetAmount - saved);
+
+            return (
+              <li key={goal.id}>
+                <strong>{goal.name}</strong>
+                {saved >= goal.targetAmount && <span>　達成！</span>}
+                <div>
+                  <progress value={rate} max={100} /> {rate}%
+                </div>
+                <div>
+                  節約累計 {saved.toLocaleString()}円 ／ 目標{' '}
+                  {goal.targetAmount.toLocaleString()}円（残り{' '}
+                  {remaining.toLocaleString()}円）
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
     </main>
   );
 }
