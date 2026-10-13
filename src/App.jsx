@@ -4,6 +4,7 @@ import { db } from './db';
 import { processImage } from './image';
 import RecordForm from './RecordForm';
 import GoalImage from './GoalImage';
+import RecordHistory from './RecordHistory';
 
 function App() {
   const [name, setName] = useState('');
@@ -41,6 +42,7 @@ function App() {
       window.alert('削除に失敗しました');
     }
   }
+  handleDeleteGoal
   async function handleSubmit(e) {
     e.preventDefault();
     const amount = Number(targetAmount);
@@ -150,7 +152,7 @@ function App() {
             const achieved = saved >= goal.targetAmount;
 
             return (
-              <article
+                              <article
                 key={goal.id}
                 style={{ border: '1px solid #dddddd', borderRadius: 12, padding: 12 }}
               >
@@ -167,7 +169,7 @@ function App() {
                   節約累計 {saved.toLocaleString()}円 ／ 目標{' '}
                   {goal.targetAmount.toLocaleString()}円
                 </div>
-                                <button
+                <button
                   type="button"
                   onClick={() => handleDeleteGoal(goal)}
                   style={{ marginTop: 8 }}
@@ -178,6 +180,10 @@ function App() {
             );
           })}
         </div>
+      </section>
+            <section>
+        <h2>履歴</h2>
+        <RecordHistory goals={goals ?? []} records={records ?? []} />
       </section>
     </main>
   );
